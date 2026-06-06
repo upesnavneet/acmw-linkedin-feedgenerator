@@ -68,18 +68,35 @@ function parseLinkedInDate(dateStr) {
 async function scrapeLinkedInPosts() {
   console.log("[scraper] Starting scrape:", new Date().toISOString());
 
-  // Get chromium executable path from @sparticuz/chromium
   const chromiumPkg = require("@sparticuz/chromium");
+  const path = require("path");
 
-  // Must call executablePath() — it extracts the binary to /tmp
-  const executablePath = await chromiumPkg.executablePath();
-  console.log("[scraper] Chromium path:", executablePath);
+  // Pass explicit bin path — prevents "directory does not exist" error on Netlify
+  const binPath = path.join(
+    __dirname,
+    "../../../node_modules/@sparticuz/chromium/bin"
+  );
 
-  const browser = await chromium.launch({
-    args: chromiumPkg.args,
-    executablePath: executablePath,
-    headless: chromiumPkg.headless,
-  });
+  let executablePath;
+  try {
+    executablePath = await chromiumPkg.executablePath(binPath);
+    console.log("[scraper] Chromium executable:", executablePath);
+  } catch (e) {
+    console.error("[scraper] executablePath failed:", e.message);
+    return { success: false, posts: [], error: e.message };
+  }
+
+  let browser;
+  try {
+    browser = await chromium.launch({
+      args: chromiumPkg.args,
+      executablePath: executablePath,
+      headless: "shell",
+    });
+  } catch (e) {
+    console.error("[scraper] Browser launch failed:", e.message);
+    return { success: false, posts: [], error: e.message };
+  }
 
   try {
     const context = await browser.newContext({

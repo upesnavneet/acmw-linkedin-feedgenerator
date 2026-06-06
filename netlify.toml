@@ -1,5 +1,5 @@
 [build]
-  command = "npm install"
+  command = "npm install && node scripts/download-chromium.js"
   publish = "public"
   functions = "netlify/functions"
 
@@ -8,16 +8,11 @@
 
 [functions]
   node_bundler = "esbuild"
-  included_files = ["data/**"]
+  included_files = ["data/**", "node_modules/@sparticuz/chromium/**"]
 
-[[plugins]]
-  package = "@netlify/plugin-functions-install-core"
-
-# Scheduled function: runs every 6 hours
 [functions."scrape-posts"]
-  schedule = "0 */6 * * *"
+  schedule = "0 0,6,12,18 * * *"
 
-# Redirect /api/posts to the Netlify function
 [[redirects]]
   from = "/api/posts"
   to = "/.netlify/functions/get-posts"
