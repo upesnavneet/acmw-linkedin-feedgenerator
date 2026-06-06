@@ -72,10 +72,9 @@ async function scrapeLinkedInPosts() {
   const path = require("path");
 
   // Pass explicit bin path — prevents "directory does not exist" error on Netlify
-  const binPath = path.join(
-    __dirname,
-    "../../../node_modules/@sparticuz/chromium/bin"
-  );
+  const binPath = process.env.LAMBDA_TASK_ROOT
+    ? path.join(process.env.LAMBDA_TASK_ROOT, "node_modules/@sparticuz/chromium/bin")
+    : path.join(__dirname, "../../../node_modules/@sparticuz/chromium/bin");
 
   let executablePath;
   try {
