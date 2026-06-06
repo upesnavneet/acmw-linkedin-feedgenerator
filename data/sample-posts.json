@@ -1,0 +1,18 @@
+[
+  {
+    "id": "sample001",
+    "text": "🌟 Welcome to the ACM-W India LinkedIn feed! Our posts will appear here automatically once the scraper has collected data. ACM-W India is dedicated to supporting women in computing and advancing technology education across India.",
+    "url": "https://www.linkedin.com/company/acm-w-india/posts/?feedView=all",
+    "image": "",
+    "date": "2026-06-01",
+    "scrapedAt": "2026-06-01T00:00:00.000Z"
+  },
+  {
+    "id": "sample002",
+    "text": "ACM-W India promotes, celebrates, and supports the engagement of women in computing. We organize events, workshops, and networking opportunities for women technologists across India.",
+    "url": "https://www.linkedin.com/company/acm-w-india/",
+    "image": "",
+    "date": "2026-05-15",
+    "scrapedAt": "2026-06-01T00:00:00.000Z"
+  }
+]

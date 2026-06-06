@@ -1,0 +1,21 @@
+{
+  "name": "acmw-linkedin-feed",
+  "version": "1.0.0",
+  "description": "ACM-W India LinkedIn Posts Feed - Netlify Serverless Application",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "npm install",
+    "scrape:local": "node scripts/scrape-local.js",
+    "test": "node scripts/test-api.js"
+  },
+  "dependencies": {
+    "playwright-core": "^1.44.0",
+    "@sparticuz/chromium": "^123.0.1"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}

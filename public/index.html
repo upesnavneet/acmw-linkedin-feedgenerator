@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACM-W India | LinkedIn Feed API</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue: #0182AC;
+      --dark-blue: #09357A;
+      --white: #FFFFFF;
+      --light-gray: #F5F7FA;
+      --border: #E1E8ED;
+      --text: #1A2A3A;
+      --muted: #6B7280;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--light-gray);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--dark-blue) 0%, var(--blue) 100%);
+      color: white;
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-family: 'Roboto Condensed', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      opacity: 0.85;
+      font-size: 1rem;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      margin-top: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .status-bar {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 28px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #22C55E;
+      flex-shrink: 0;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .status-text { font-size: 0.9rem; color: var(--muted); }
+    .status-count { font-weight: 700; color: var(--blue); }
+
+    .endpoint-card {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+
+    .card-header {
+      padding: 16px 24px;
+      background: var(--dark-blue);
+      color: white;
+      font-family: 'Roboto Condensed', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .method-badge {
+      background: rgba(255,255,255,0.2);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-family: monospace;
+    }
+
+    .card-body { padding: 20px 24px; }
+
+    .endpoint-url {
+      font-family: monospace;
+      font-size: 1rem;
+      background: var(--light-gray);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      word-break: break-all;
+      color: var(--blue);
+    }
+
+    .copy-btn {
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .copy-btn:hover { background: var(--dark-blue); }
+
+    .posts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .post-card {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      transition: box-shadow 0.2s, transform 0.2s;
+      cursor: pointer;
+    }
+
+    .post-card:hover {
+      box-shadow: 0 8px 24px rgba(9,53,122,0.12);
+      transform: translateY(-2px);
+    }
+
+    .post-image {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+      background: var(--light-gray);
+    }
+
+    .post-img-placeholder {
+      width: 100%;
+      height: 120px;
+      background: linear-gradient(135deg, var(--dark-blue), var(--blue));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .post-img-placeholder span {
+      color: rgba(255,255,255,0.3);
+      font-size: 2rem;
+    }
+
+    .post-content { padding: 16px; }
+
+    .post-date {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .post-text {
+      font-size: 0.9rem;
+      line-height: 1.55;
+      color: var(--text);
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .read-more {
+      display: inline-block;
+      margin-top: 12px;
+      color: var(--blue);
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 6px 12px;
+      border: 1px solid var(--blue);
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .read-more:hover {
+      background: var(--blue);
+      color: white;
+    }
+
+    .section-title {
+      font-family: 'Roboto Condensed', sans-serif;
+      font-size: 1.4rem;
+      color: var(--dark-blue);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .loading { text-align: center; padding: 40px; color: var(--muted); }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+
+    footer a { color: var(--blue); text-decoration: none; }
+
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.6rem; }
+      .posts-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>ACM-W India LinkedIn Feed</h1>
+  <p>Automated LinkedIn post scraper & JSON API</p>
+  <span class="badge">⚡ Updates every 6 hours</span>
+</header>
+
+<div class="container">
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="status-dot"></span>
+    <div>
+      <div style="font-weight:600;margin-bottom:2px;">API Status: <span style="color:#22C55E">Online</span></div>
+      <div class="status-text">
+        <span id="postsCount" class="status-count">—</span> posts cached &bull;
+        Last updated: <span id="lastUpdated">loading...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- API Endpoint -->
+  <div class="endpoint-card">
+    <div class="card-header">
+      <span class="method-badge">GET</span>
+      API Endpoint
+    </div>
+    <div class="card-body">
+      <div class="endpoint-url" id="apiUrl">Loading...</div>
+      <button class="copy-btn" onclick="copyEndpoint()">Copy URL</button>
+      <p style="margin-top:12px;font-size:0.85rem;color:var(--muted);">
+        Returns <code>application/json</code> array of posts. CORS enabled for all origins.
+      </p>
+    </div>
+  </div>
+
+  <!-- Live Posts Preview -->
+  <h2 class="section-title">📰 Live Posts Preview</h2>
+
+  <div id="postsContainer">
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Loading posts from API...</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>
+    Powered by <a href="https://www.netlify.com" target="_blank">Netlify</a> &bull;
+    Built for <a href="https://www.linkedin.com/company/acm-w-india" target="_blank">ACM-W India</a>
+  </p>
+</footer>
+
+<script>
+  const API_URL = window.location.origin + '/api/posts';
+  document.getElementById('apiUrl').textContent = API_URL;
+
+  async function loadPosts() {
+    try {
+      const res = await fetch(API_URL);
+      const posts = await res.json();
+
+      document.getElementById('postsCount').textContent = posts.length;
+
+      if (posts.length > 0) {
+        const d = new Date(posts[0].scrapedAt);
+        document.getElementById('lastUpdated').textContent = isNaN(d) ? 'N/A' : d.toLocaleString();
+      } else {
+        document.getElementById('lastUpdated').textContent = 'No posts yet';
+      }
+
+      renderPosts(posts);
+    } catch (err) {
+      document.getElementById('postsContainer').innerHTML =
+        '<p style="color:#EF4444;padding:20px;">Failed to load posts: ' + err.message + '</p>';
+    }
+  }
+
+  function renderPosts(posts) {
+    if (!posts.length) {
+      document.getElementById('postsContainer').innerHTML =
+        '<p style="color:var(--muted);padding:20px;">No posts available yet. The scraper will run on schedule.</p>';
+      return;
+    }
+
+    const html = '<div class="posts-grid">' + posts.map(post => `
+      <div class="post-card" onclick="window.open('${escHtml(post.url)}','_blank')">
+        ${post.image
+          ? `<img src="${escHtml(post.image)}" alt="Post image" class="post-image" onerror="this.parentNode.removeChild(this)">`
+          : `<div class="post-img-placeholder"><span>W</span></div>`}
+        <div class="post-content">
+          ${post.date ? `<div class="post-date">📅 ${escHtml(post.date)}</div>` : ''}
+          <p class="post-text">${escHtml(post.text)}</p>
+          <a href="${escHtml(post.url)}" target="_blank" rel="noopener" class="read-more"
+             onclick="event.stopPropagation()">Read on LinkedIn →</a>
+        </div>
+      </div>
+    `).join('') + '</div>';
+
+    document.getElementById('postsContainer').innerHTML = html;
+  }
+
+  function escHtml(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function copyEndpoint() {
+    navigator.clipboard.writeText(API_URL).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      const orig = btn.textContent;
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => btn.textContent = orig, 2000);
+    });
+  }
+
+  loadPosts();
+</script>
+
+</body>
+</html>

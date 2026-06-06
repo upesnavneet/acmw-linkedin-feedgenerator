@@ -1,0 +1,47 @@
+[build]
+  command = "npm install"
+  publish = "public"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["data/**"]
+
+[[plugins]]
+  package = "@netlify/plugin-functions-install-core"
+
+# Scheduled function: runs every 6 hours
+[functions."scrape-posts"]
+  schedule = "0 */6 * * *"
+
+# Redirect /api/posts to the Netlify function
+[[redirects]]
+  from = "/api/posts"
+  to = "/.netlify/functions/get-posts"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/trigger-scrape"
+  to = "/.netlify/functions/scrape-posts"
+  status = 200
+  force = true
+
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type"
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type"
+    Cache-Control = "no-cache"
