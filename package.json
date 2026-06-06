@@ -1,7 +1,8 @@
 {
   "name": "acmw-linkedin-feed",
   "version": "1.0.0",
-  "description": "ACM-W India LinkedIn Posts Feed - Netlify Serverless Application",
+  "description": "ACM-W India LinkedIn Posts Feed",
+  "type": "commonjs",
   "engines": {
     "node": ">=20.0.0"
   },
