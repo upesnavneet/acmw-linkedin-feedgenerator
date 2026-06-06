@@ -13,8 +13,8 @@
     "test": "node scripts/test-api.js"
   },
   "dependencies": {
-    "playwright-core": "^1.44.0",
-    "@sparticuz/chromium": "^123.0.1"
+    "playwright-core": "1.46.0",
+    "@sparticuz/chromium": "127.0.0"
   },
   "devDependencies": {
     "netlify-cli": "^17.0.0"
