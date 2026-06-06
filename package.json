@@ -13,7 +13,7 @@
     "test": "node scripts/test-api.js"
   },
   "dependencies": {
-    "playwright-core": "1.46.0",
+    "puppeteer-core": "22.12.1",
     "@sparticuz/chromium": "127.0.0"
   },
   "devDependencies": {

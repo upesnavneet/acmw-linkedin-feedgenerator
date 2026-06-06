@@ -1,5 +1,5 @@
 [build]
-  command = "npm install && node scripts/download-chromium.js"
+  command = "npm install"
   publish = "public"
   functions = "netlify/functions"
 

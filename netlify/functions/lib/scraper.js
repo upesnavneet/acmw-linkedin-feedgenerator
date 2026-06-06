@@ -1,9 +1,10 @@
 /**
  * ACM-W India LinkedIn Scraper
- * Playwright + @sparticuz/chromium for Netlify Functions
+ * puppeteer-core + @sparticuz/chromium for Netlify Functions
  */
 
-const { chromium } = require("playwright-core");
+const chromium = require("@sparticuz/chromium");
+const puppeteer = require("puppeteer-core");
 
 const LINKEDIN_URL =
   "https://www.linkedin.com/company/acm-w-india/posts/?feedView=all";
@@ -68,17 +69,9 @@ function parseLinkedInDate(dateStr) {
 async function scrapeLinkedInPosts() {
   console.log("[scraper] Starting scrape:", new Date().toISOString());
 
-  const chromiumPkg = require("@sparticuz/chromium");
-  const path = require("path");
-
-  // Pass explicit bin path — prevents "directory does not exist" error on Netlify
-  const binPath = process.env.LAMBDA_TASK_ROOT
-    ? path.join(process.env.LAMBDA_TASK_ROOT, "node_modules/@sparticuz/chromium/bin")
-    : path.join(__dirname, "../../../node_modules/@sparticuz/chromium/bin");
-
   let executablePath;
   try {
-    executablePath = await chromiumPkg.executablePath(binPath);
+    executablePath = await chromium.executablePath();
     console.log("[scraper] Chromium executable:", executablePath);
   } catch (e) {
     console.error("[scraper] executablePath failed:", e.message);
@@ -87,10 +80,11 @@ async function scrapeLinkedInPosts() {
 
   let browser;
   try {
-    browser = await chromium.launch({
-      args: chromiumPkg.args,
+    browser = await puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
       executablePath: executablePath,
-      headless: true,
+      headless: chromium.headless,
     });
   } catch (e) {
     console.error("[scraper] Browser launch failed:", e.message);
@@ -98,35 +92,41 @@ async function scrapeLinkedInPosts() {
   }
 
   try {
-    const context = await browser.newContext({
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-      viewport: { width: 1280, height: 900 },
-      locale: "en-US",
-      timezoneId: "Asia/Kolkata",
-      extraHTTPHeaders: {
-        "Accept-Language": "en-US,en;q=0.9",
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      },
+    const page = await browser.newPage();
+
+    await page.setUserAgent(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    );
+    await page.setViewport({ width: 1280, height: 900 });
+    await page.setExtraHTTPHeaders({
+      "Accept-Language": "en-US,en;q=0.9",
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     });
 
-    const page = await context.newPage();
-
-    await page.route("**/*.{woff,woff2,ttf,eot}", (route) => route.abort());
-    await page.route("**/analytics**", (route) => route.abort());
-    await page.route("**/ads/**", (route) => route.abort());
+    // Block unnecessary resources to speed up loading
+    await page.setRequestInterception(true);
+    page.on("request", (req) => {
+      const url = req.url();
+      const type = req.resourceType();
+      if (type === "font" || url.includes("analytics") || url.includes("/ads/")) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
 
     console.log("[scraper] Navigating to:", LINKEDIN_URL);
     await page.goto(LINKEDIN_URL, { waitUntil: "domcontentloaded", timeout: 45000 });
 
     await sleep(4000);
 
+    // Scroll to trigger lazy loading
     for (let i = 0; i < 3; i++) {
       await page.evaluate(() => window.scrollBy(0, 600));
       await sleep(1500);
     }
 
-    const posts = await page.evaluate(({ maxPosts }) => {
+    const posts = await page.evaluate((maxPosts) => {
       const results = [];
       const seen = new Set();
 
@@ -198,7 +198,7 @@ async function scrapeLinkedInPosts() {
       });
 
       return results.slice(0, maxPosts);
-    }, { maxPosts: MAX_POSTS });
+    }, MAX_POSTS);
 
     console.log("[scraper] Extracted", posts.length, "raw posts");
 
