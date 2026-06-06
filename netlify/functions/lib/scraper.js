@@ -90,7 +90,7 @@ async function scrapeLinkedInPosts() {
     browser = await chromium.launch({
       args: chromiumPkg.args,
       executablePath: executablePath,
-      headless: "shell",
+      headless: true,
     });
   } catch (e) {
     console.error("[scraper] Browser launch failed:", e.message);
